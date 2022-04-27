@@ -18,7 +18,7 @@ if __name__ == '__main__':
     train_dataset = DataLoader(tvtDatasetList(file_path=TRAIN_PATH, transforms=img_to_tensor),batch_size=BATCH_SIZE,shuffle=True,num_workers=NUM_WORKERS)
     validation_dataset = DataLoader(tvtDatasetList(file_path=VALIDATION_PATH, transforms=img_to_tensor), batch_size=BATCH_SIZE,shuffle=True,num_workers=NUM_WORKERS)
     model = STRNN().to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=LR)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.5)   
     loss_function = torch.nn.CrossEntropyLoss(weight=class_weights).to(device)
     for epoch in range(EPOCH):
@@ -46,10 +46,10 @@ if __name__ == '__main__':
             print("Loss = {}".format(loss))
         ## Validation
         model.eval()
+        loss = 0
+        count = 0
+        pixels = 0
         with torch.no_grad():
-            loss = 0
-            count = 0
-            pixels = 0
             for mini_batch in validation_dataset:
                 count += 1
                 images = mini_batch['data'].to(device)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                 pred = output.max(1, keepdim=True)[1]
                 pixels += pred.eq(truth.view_as(pred)).sum().item()
         loss /= count
-        accuracy = 100. * int(pixels) / (count * 128 * 256)
+        accuracy = 100. * int(pixels) / (count * BATCH_SIZE * 128 * 256)
         print("Loss = {}".format(loss))
         print("Accuracy = {}".format(accuracy))
         scheduler.step()

@@ -29,19 +29,19 @@ class SCNN(nn.Module):
 
         ###up to down#####
         for i in range(1, height):
-            x[:, :, i:i+1, :] = self.relu(self.scnn[1](x[:, :, i-1:i, :].clone()).add(x[:, :, i:i+1, :]).clone())
+            x[:, :, i:i+1, :] = (x[:, :, i:i+1, :].clone()).add(self.relu(self.scnn[0](x[:, :, i-1:i, :].clone())))
 
         ###down to up###
         for i in range(height-2, -1, -1):
-            x[:, :, i:i+1, :] = self.relu(self.scnn[1](x[:, :, i+1:i+2, :].clone()).add(x[:, :, i:i+1, :]).clone())
+            x[:, :, i:i+1, :] = (x[:, :, i:i+1, :].clone()).add(self.relu(self.scnn[1](x[:, :, i+1:i+2, :].clone())))
         
         ###left to right###
         for i in range(1, width):
-            x[:, :, :, i:i+1] = self.relu(self.scnn[2](x[:, :, :, i-1:i].clone()).add(x[:, :, :, i:i+1]).clone())
+            x[:, :, :, i:i+1] = (x[:, :, :, i:i+1].clone()).add(self.relu(self.scnn[2](x[:, :, :, i-1:i].clone())))
 
         ###right to left###
         for i in range(width-2, -1, -1):
-            x[:, :, :, i:i+1] = self.relu(self.scnn[3](x[:, :, :, i+1:i+2].clone()).add(x[:, :, :, i:i+1]).clone())
+            x[:, :, :, i:i+1] = (x[:, :, :, i:i+1].clone()).add(self.relu(self.scnn[3](x[:, :, :, i+1:i+2].clone())))
         return x
 
 
