@@ -59,7 +59,7 @@ class Conv_LSTM(nn.Module):
         self.tanh = nn.Tanh()
 
     def forward(self, cell_state, hidden_state, input):
-        #Tensor must be of dimension = channels, height, width
+        #Tensor must be of dimension = mini_batch, channels, height, width
         concatenate = torch.cat((input, hidden_state), dim=1)
         f = self.sigmoid(self.conv_forget(concatenate))
         i = self.sigmoid(self.conv_input(concatenate))
