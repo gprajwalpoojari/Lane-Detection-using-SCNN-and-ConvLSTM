@@ -105,6 +105,7 @@ class STRNN(nn.Module):                             ##Segnet Based nn
         # initialize first set of CONV => RELU => CONV => RELU => POOL layers
         self.en_conv_1_1 = nn.Conv2d(in_channels=inChannels, out_channels=64, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_1_2 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(3,3), padding=(1,1), stride=1)
+        self.batchnorm_1 = nn.BatchNorm2d(64)
 
         # initialize the SCNN layer
         self.scnn = SCNN()
@@ -112,22 +113,25 @@ class STRNN(nn.Module):                             ##Segnet Based nn
         # initialize second set of CONV => RELU => CONV => RELU => POOL layers
         self.en_conv_2_1 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_2_2 = nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3,3), padding=(1,1), stride=1)
+        self.batchnorm_2 = nn.BatchNorm2d(128)
 
         # initialize third set of CONV => RELU => CONV => RELU => CONV => RELU => POOL layers
         self.en_conv_3_1 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_3_2 = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_3_3 = nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3,3), padding=(1,1), stride=1)
+        self.batchnorm_3 = nn.BatchNorm2d(256)
 
         # initialize fourth set of CONV => RELU => CONV => RELU => CONV => RELU => POOL layers
         self.en_conv_4_1 = nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_4_2 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_4_3 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
+        self.batchnorm_4 = nn.BatchNorm2d(512)
 
         # initialize fifth set of CONV => RELU => CONV => RELU => CONV => RELU => POOL layers
         self.en_conv_5_1 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_5_2 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
         self.en_conv_5_3 = nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3,3), padding=(1,1), stride=1)
-
+        self.batchnorm_5 = nn.BatchNorm2d(512)
 
         ####### Encoder Architecture Ends ##############
 
@@ -169,8 +173,11 @@ class STRNN(nn.Module):                             ##Segnet Based nn
 
     def block_1(self, input):
         x1 = self.en_conv_1_1(input)
+        x1 = self.batchnorm_1(x1)
         x1 = self.relu(x1)
+        # print(x1)
         x1 = self.en_conv_1_2(x1)
+        x1 = self.batchnorm_1(x1)
         x1 = self.relu(x1)
         x1, indices_1 = self.maxpool(x1)
         return x1, indices_1
@@ -183,8 +190,10 @@ class STRNN(nn.Module):                             ##Segnet Based nn
 
     def block_2(self, input):
         x2 = self.en_conv_2_1(input)
+        x2 = self.batchnorm_2(x2)
         x2 = self.relu(x2)
         x2 = self.en_conv_2_2(x2)
+        x2 = self.batchnorm_2(x2)
         x2 = self.relu(x2)
         x2, indices_2 = self.maxpool(x2)
         # print(x2)
@@ -192,10 +201,13 @@ class STRNN(nn.Module):                             ##Segnet Based nn
 
     def block_3(self, input):
         x3 = self.en_conv_3_1(input)
+        x3 = self.batchnorm_3(x3)
         x3 = self.relu(x3)
         x3 = self.en_conv_3_2(x3)
+        x3 = self.batchnorm_3(x3)
         x3 = self.relu(x3)
         x3 = self.en_conv_3_3(x3)
+        x3 = self.batchnorm_3(x3)
         x3 = self.relu(x3)
         x3, indices_3 = self.maxpool(x3)
         # print(x3)
@@ -203,20 +215,26 @@ class STRNN(nn.Module):                             ##Segnet Based nn
 
     def block_4(self, input):
         x4 = self.en_conv_4_1(input)
+        x4 = self.batchnorm_4(x4)
         x4 = self.relu(x4)
         x4 = self.en_conv_4_2(x4)
+        x4 = self.batchnorm_4(x4)
         x4 = self.relu(x4)
         x4 = self.en_conv_4_3(x4)
+        x4 = self.batchnorm_4(x4)
         x4 = self.relu(x4)
         x4, indices_4 = self.maxpool(x4)
         return x4, indices_4
 
     def block_5(self, input):
         x5 = self.en_conv_5_1(input)
+        x5 = self.batchnorm_5(x5)
         x5 = self.relu(x5)
         x5 = self.en_conv_5_2(x5)
+        x5 = self.batchnorm_5(x5)
         x5 = self.relu(x5)
         x5 = self.en_conv_5_3(x5)
+        x5 = self.batchnorm_5(x5)
         x5 = self.relu(x5)
         x5, indices_5 = self.maxpool(x5)
         return x5, indices_5
@@ -224,38 +242,49 @@ class STRNN(nn.Module):                             ##Segnet Based nn
     def block_6(self, input, indices_5):
         x6 = self.maxunpool(input, indices_5)
         x6 = self.de_conv_5_1(x6)
+        x6 = self.batchnorm_5(x6)
         x6 = self.relu(x6)
         x6 = self.de_conv_5_2(x6)
+        x6 = self.batchnorm_5(x6)
         x6 = self.relu(x6)
         x6 = self.de_conv_5_3(x6)
+        x6 = self.batchnorm_5(x6)
         x6 = self.relu(x6)
         return x6
 
     def block_7(self, input, indices_4):
         x7 = self.maxunpool(input, indices_4)
         x7 = self.de_conv_4_1(x7)
+        x7 = self.batchnorm_4(x7)
         x7 = self.relu(x7)
         x7 = self.de_conv_4_2(x7)
+        x7 = self.batchnorm_4(x7)
         x7 = self.relu(x7)
         x7 = self.de_conv_4_3(x7)
+        x7 = self.batchnorm_3(x7)
         x7 = self.relu(x7)
         return x7
 
     def block_8(self, input, indices_3):
         x8 = self.maxunpool(input, indices_3)
         x8 = self.de_conv_3_1(x8)
+        x8 = self.batchnorm_3(x8)
         x8 = self.relu(x8)
         x8 = self.de_conv_3_2(x8)
+        x8 = self.batchnorm_3(x8)
         x8 = self.relu(x8)
         x8 = self.de_conv_3_3(x8)
+        x8 = self.batchnorm_2(x8)
         x8 = self.relu(x8)
         return x8
 
     def block_9(self, input, indices_2):
         x9 = self.maxunpool(input, indices_2)
         x9 = self.de_conv_2_2(x9)
+        x9 = self.batchnorm_2(x9)
         x9 = self.relu(x9)
         x9 = self.de_conv_2_3(x9)
+        x9 = self.batchnorm_1(x9)
         x9 = self.relu(x9)
         # print(x9)
         return x9
@@ -263,6 +292,7 @@ class STRNN(nn.Module):                             ##Segnet Based nn
     def block_10(self, input, indices_1):
         x10 = self.maxunpool(input, indices_1)
         x10 = self.de_conv_1_2(x10)
+        x10 = self.batchnorm_1(x10)
         x10 = self.relu(x10)
         x10 = self.de_conv_1_3(x10)
         x10 = self.log_softmax(x10)
@@ -275,12 +305,19 @@ class STRNN(nn.Module):                             ##Segnet Based nn
         feat = []
         for i in range(5):
             img = torch.squeeze(input_[i], dim=1)  # dimensions = mini_batch, channels, height, width
+            # print(img)
             x1, indices_1 = self.block_1(img)
+            # print(x1)
             xSCNN = self.do_scnn(x1)
+            # print(xSCNN)
             x2, indices_2 = self.block_2(xSCNN)
+            # print(x2)
             x3, indices_3 = self.block_3(x2)
+            # print(x3)
             x4, indices_4 = self.block_4(x3)
-            x5, indices_5 = self.block_5(x4)        
+            # print(x4)
+            x5, indices_5 = self.block_5(x4)
+            # print(x5)        
             feat.append(x5)
         shape = feat[0].size()
         hidden_init = torch.zeros(shape).to(torch.device(DEVICE))

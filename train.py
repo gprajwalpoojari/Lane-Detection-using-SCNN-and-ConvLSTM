@@ -25,6 +25,7 @@ if __name__ == '__main__':
         print("Train Epoch = {}".format(epoch))
         ## Training
         model.train()
+        # print(model.state_dict().keys())
         for i, mini_batch in enumerate(train_dataset):
             torch.autograd.set_detect_anomaly(True)
             images = mini_batch['data'].to(device)
@@ -33,7 +34,7 @@ if __name__ == '__main__':
             output = model(images)
             loss = loss_function(output, truth)
             pred = output.max(1, keepdim=True)[1]
-            print(pred.size())
+            # print(pred.size())
             pred = torch.tensor_split(pred, BATCH_SIZE, dim=0)
             for j in range(BATCH_SIZE):
                 img = torch.squeeze(pred[j]).cpu().unsqueeze(2).expand(-1,-1,3).numpy()*255
