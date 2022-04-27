@@ -68,4 +68,5 @@ if __name__ == '__main__':
         accuracy = 100. * int(pixels) / (count * BATCH_SIZE * 128 * 256)
         print("Loss = {}".format(loss))
         print("Accuracy = {}".format(accuracy))
+        torch.save(model.state_dict(), '%s.pth'%accuracy)
         scheduler.step()

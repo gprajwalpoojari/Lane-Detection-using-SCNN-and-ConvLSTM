@@ -1,7 +1,7 @@
 class_weight = [0.02, 1.02]
 LR = 0.001
 EPOCH = 2
-BATCH_SIZE = 5
+BATCH_SIZE = 50
 NUM_WORKERS = 8
 TRAIN_PATH = "C:/Users/pgpoojari/Desktop/Spring_2022/DL_group_project/tvt_dataset/trainset/train_index.txt"
 VALIDATION_PATH = "C:/Users/pgpoojari/Desktop/Spring_2022/DL_group_project/tvt_dataset/trainset/val_index.txt"
