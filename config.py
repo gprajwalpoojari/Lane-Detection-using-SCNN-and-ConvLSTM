@@ -1,0 +1,9 @@
+class_weight = [0.02, 1.02]
+LR = 0.0005
+EPOCH = 2
+BATCH_SIZE = 5
+NUM_WORKERS = 8
+TRAIN_PATH = "../../../tvt_dataset/data/train_index.txt"
+VALIDATION_PATH = "../../../tvt_dataset/data/val_index.txt"
+TEST_PATH = "../../../tvt_dataset/data/test_index_0530.txt"
+SAVE_PATH = "./save/train_save/"
