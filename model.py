@@ -1,5 +1,5 @@
 import torch
-
+from config import *
 from torch import nn                   ##Import pytorch Neural Network Module
 import torch.nn.functional as F         ##Import activation and loss functions
 
@@ -19,6 +19,7 @@ class SCNN(nn.Module):
         self.down_up_conv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(1,kernel), padding=(0,4))
         self.left_right_conv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(kernel,1), padding=(4,0))
         self.right_left_conv = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=(kernel,1), padding=(4,0))
+        self.scnn = nn.ModuleList([self.up_down_conv, self.down_up_conv, self.left_right_conv, self.right_left_conv])
         self.relu = nn.ReLU()
 
 
@@ -28,35 +29,19 @@ class SCNN(nn.Module):
 
         ###up to down#####
         for i in range(1, height):
-            # print(x[:, :, i:i+1, :].size())
-            # x_ = x[:, :, i, :]
-            # x_ = x_.unsqueeze(2)
-            # print(x_.size())
-            new_slice = self.up_down_conv(x[:, :, i:i+1, :])
-            new_slice = new_slice.add(x[:, :, i-1:i, :])
-            # print(self.relu(new_slice).size())
-            x[:, :, i:i+1, :] = self.relu(new_slice)
+            x[:, :, i:i+1, :] = self.relu(self.scnn[1](x[:, :, i-1:i, :].clone()).add(x[:, :, i:i+1, :]).clone())
 
         ###down to up###
         for i in range(height-2, -1, -1):
-            new_slice = self.down_up_conv(x[:, :, i:i+1, :])
-            new_slice = new_slice.add(x[:, :, i+1:i+2, :])
-            x[:, :, i:i+1, :] = self.relu(new_slice)
+            x[:, :, i:i+1, :] = self.relu(self.scnn[1](x[:, :, i+1:i+2, :].clone()).add(x[:, :, i:i+1, :]).clone())
         
         ###left to right###
         for i in range(1, width):
-            new_slice = self.left_right_conv(x[:, :, :, i:i+1])
-            # print(new_slice.size())
-            new_slice = new_slice.add(x[:, :, :, i-1:i])
-            
-            x[:, :, :, i:i+1] = self.relu(new_slice)
+            x[:, :, :, i:i+1] = self.relu(self.scnn[2](x[:, :, :, i-1:i].clone()).add(x[:, :, :, i:i+1]).clone())
 
         ###right to left###
         for i in range(width-2, -1, -1):
-            new_slice = self.left_right_conv(x[:, :, :, i:i+1])
-            new_slice = new_slice.add(x[:, :, :, i+1:i+2])
-            x[:, :, :, i:i+1] = self.relu(new_slice)
-
+            x[:, :, :, i:i+1] = self.relu(self.scnn[3](x[:, :, :, i+1:i+2].clone()).add(x[:, :, :, i:i+1]).clone())
         return x
 
 
@@ -272,7 +257,7 @@ class STRNN(nn.Module):                             ##Segnet Based nn
         x9 = self.relu(x9)
         x9 = self.de_conv_2_3(x9)
         x9 = self.relu(x9)
-        print(x9)
+        # print(x9)
         return x9
 
     def block_10(self, input, indices_1):
@@ -298,10 +283,10 @@ class STRNN(nn.Module):                             ##Segnet Based nn
             x5, indices_5 = self.block_5(x4)        
             feat.append(x5)
         shape = feat[0].size()
-        hidden_init = torch.zeros(shape).to(torch.device("cuda"))
-        cell_init = torch.zeros(shape).to(torch.device("cuda"))
+        hidden_init = torch.zeros(shape).to(torch.device(DEVICE))
+        cell_init = torch.zeros(shape).to(torch.device(DEVICE))
         xRNN_1 = self.rnn_1(cell_init, hidden_init, feat)
-        print(xRNN_1)
+        # print(xRNN_1)
         xRNN_2 = self.rnn_2(cell_init, hidden_init, xRNN_1)
         xRNN_out = xRNN_2[len(xRNN_2) - 1]       # output is the last element of final rnn layer
         # xRNN_out is of dimensions = mini_batch, channels, height, width

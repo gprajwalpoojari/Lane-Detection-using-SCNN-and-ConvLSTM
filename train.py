@@ -8,8 +8,11 @@ import numpy as np
 
 if __name__ == '__main__':
     
-    device = torch.device("cuda")
-    class_weights=torch.FloatTensor(class_weight).cuda()
+    device = torch.device(DEVICE)
+    if DEVICE == "cpu":
+        class_weights=torch.FloatTensor(class_weight).cpu()
+    else:
+        class_weights=torch.FloatTensor(class_weight).cuda()
 
     img_to_tensor = torchvision.transforms.Compose([torchvision.transforms.ToTensor()]) # convert image into pytorch tensor
     train_dataset = DataLoader(tvtDatasetList(file_path=TRAIN_PATH, transforms=img_to_tensor),batch_size=BATCH_SIZE,shuffle=True,num_workers=NUM_WORKERS)
@@ -23,6 +26,7 @@ if __name__ == '__main__':
         ## Training
         model.train()
         for i, mini_batch in enumerate(train_dataset):
+            torch.autograd.set_detect_anomaly(True)
             images = mini_batch['data'].to(device)
             truth = mini_batch['label'].type(torch.LongTensor).to(device)
             optimizer.zero_grad()
