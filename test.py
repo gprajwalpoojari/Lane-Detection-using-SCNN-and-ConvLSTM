@@ -37,15 +37,15 @@ if __name__ == '__main__':
             images = mini_batch['data'].to(device)
             truth = mini_batch['label'].type(torch.LongTensor).to(device)
             output = model(images)
-            print(output)
+            # print(output)
             pred = output.max(1, keepdim=True)[1]
-            print(pred.size())
+            # print(pred.size())
             pred_ = torch.unbind(pred, dim=0)
             images_ = torch.unbind(images, dim=0)
             img_ = []
             lab_ = []
-            for j in range(BATCH_SIZE):
-                pred_img = torch.squeeze(pred[j]).cpu().unsqueeze(2).expand(-1,-1,3).numpy()*255
+            for j in range(len(pred_)):
+                pred_img = torch.squeeze(pred_[j]).cpu().unsqueeze(2).expand(-1,-1,3).numpy()*255
                 pred_img = Image.fromarray(pred_img.astype(np.uint8))
                 truth_image = torch.squeeze(images_[j]).cpu().numpy()
                 truth_image = np.transpose(truth_image[-1], [1, 2, 0]) * 255
@@ -80,17 +80,36 @@ if __name__ == '__main__':
             truth_ = torch.unbind(truth, dim=0)
             img_ = []
             lab_ = []
+            kernel = np.uint8(np.ones((3, 3)))
             for j in range(BATCH_SIZE):
                 img = torch.squeeze(pred[j]).cpu().numpy()*255
                 lab = torch.squeeze(truth[j]).cpu().numpy()*255
                 img = img.astype(np.uint8)
                 lab = lab.astype(np.uint8)
-                img = torch.unsqueeze(img, dim=0)
-                lab = torch.unsqueeze(lab, dim=0)
-                img_.append(img)
-                lab_.append(lab)
-
-            kernel = np.uint8(np.ones((3, 3)))
+                # img = torch.unsqueeze(img, dim=0)
+                # lab = torch.unsqueeze(lab, dim=0)
+                label_precision = cv2.dilate(lab, kernel)
+                pred_recall = cv2.dilate(img, kernel)
+                img = img.astype(np.int32)
+                lab = lab.astype(np.int32)
+                label_precision = label_precision.astype(np.int32)
+                pred_recall = pred_recall.astype(np.int32)
+                a = len(np.nonzero(img*label_precision)[1])
+                b = len(np.nonzero(img)[1])
+                if b==0:
+                    error=error+1
+                    continue
+                else:
+                    precision += float(a/b)
+                c = len(np.nonzero(pred_recall*lab)[1])
+                d = len(np.nonzero(lab)[1])
+                if d==0:
+                    error = error + 1
+                    continue
+                else:
+                    recall += float(c / d)
+                F1_measure=(2*precision*recall)/(precision+recall)   
+                
 
             #accuracy
             loss += loss_function(output, truth).item()  # sum up batch loss
@@ -98,29 +117,29 @@ if __name__ == '__main__':
             pixels += pred.eq(truth.view_as(pred)).sum().item()
 
             #precision,recall,f1
-            img = torch.cat(img_)
-            lab = torch.cat(lab_)
-            label_precision = cv2.dilate(lab, kernel)
-            pred_recall = cv2.dilate(img, kernel)
-            img = img.astype(np.int32)
-            lab = lab.astype(np.int32)
-            label_precision = label_precision.astype(np.int32)
-            pred_recall = pred_recall.astype(np.int32)
-            a = len(np.nonzero(img*label_precision)[1])
-            b = len(np.nonzero(img)[1])
-            if b==0:
-                error=error+1
-                continue
-            else:
-                precision += float(a/b)
-            c = len(np.nonzero(pred_recall*lab)[1])
-            d = len(np.nonzero(lab)[1])
-            if d==0:
-                error = error + 1
-                continue
-            else:
-                recall += float(c / d)
-            F1_measure=(2*precision*recall)/(precision+recall)    
+            # img = torch.cat(img_)
+            # lab = torch.cat(lab_)
+            # label_precision = cv2.dilate(lab, kernel)
+            # pred_recall = cv2.dilate(img, kernel)
+            # img = img.astype(np.int32)
+            # lab = lab.astype(np.int32)
+            # label_precision = label_precision.astype(np.int32)
+            # pred_recall = pred_recall.astype(np.int32)
+            # a = len(np.nonzero(img*label_precision)[1])
+            # b = len(np.nonzero(img)[1])
+            # if b==0:
+            #     error=error+1
+            #     continue
+            # else:
+            #     precision += float(a/b)
+            # c = len(np.nonzero(pred_recall*lab)[1])
+            # d = len(np.nonzero(lab)[1])
+            # if d==0:
+            #     error = error + 1
+            #     continue
+            # else:
+            #     recall += float(c / d)
+            # F1_measure=(2*precision*recall)/(precision+recall)    
     
     
     loss /= count
