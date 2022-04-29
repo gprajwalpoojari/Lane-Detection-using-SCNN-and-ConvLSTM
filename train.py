@@ -1,5 +1,5 @@
 import torch
-from model import *
+from model_GRU import *
 from config import *
 import torchvision
 from torch.utils.data import DataLoader
