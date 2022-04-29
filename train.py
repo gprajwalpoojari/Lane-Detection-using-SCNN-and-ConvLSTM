@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for epoch in range(EPOCH):
         print("#####################TRAINING#####################")
         print("--------------------------------------------------")
-        print("Train Epoch = {}".format(epoch))
+
         ## Training
         model.train()
         mini_batch_list = []
@@ -114,7 +114,7 @@ if __name__ == '__main__':
                 img.save(SAVE_PATH + "%s_pred.jpg" % (i*TRAIN_BATCH_SIZE+j))
             loss.backward()
             optimizer.step()
-            print("Batch Index = {}".format(i))
+            print("Train Epoch = {}  Batch Index = {}".format(epoch, i))
             print("Loss = {}".format(loss))
             print("------------------------------------------")
             if (i%TRAIN_EVAL_BATCH == 0):
