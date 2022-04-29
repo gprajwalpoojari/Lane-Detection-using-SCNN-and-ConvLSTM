@@ -7,8 +7,10 @@ from data_set import *
 import numpy as np
 import cv2
 
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
+
 def evaluate_model(mini_batch_list):
-    print("###########Evaluation##################")
     count = 0
     loss = 0
     pixels = 0
@@ -118,8 +120,9 @@ if __name__ == '__main__':
             print("Loss = {}".format(loss))
             print("------------------------------------------")
             if (i%TRAIN_EVAL_BATCH == 0):
+                print("###########Training Evaluation##################")
                 evaluate_model(mini_batch_list)
-
+            # torch.cuda.empty_cache()
         print("######################VALIDATION######################")
         ## Validation
         model.eval()
@@ -142,11 +145,13 @@ if __name__ == '__main__':
                 loss += loss_function(output, truth).item()  # sum up batch loss
                 pred = output.max(1, keepdim=True)[1]
                 pixels += pred.eq(truth.view_as(pred)).sum().item()
-        loss /= count
-        accuracy = 100. * int(pixels) / (count * TRAIN_BATCH_SIZE * 128 * 256)
-        print("Loss = {}".format(loss))
-        print("Accuracy = {}".format(accuracy))
-        torch.save(model.state_dict(), '%s.pth'%accuracy)
+            print("###########Validation Evaluation##################")
+            evaluate_model(validation_dataset)
+        # loss /= count
+        # accuracy = 100. * int(pixels) / (count * TRAIN_BATCH_SIZE * 128 * 256)
+        # print("Loss = {}".format(loss))
+        # print("Accuracy = {}".format(accuracy))
+        torch.save(model.state_dict(), '%s.pth'%epoch+1)
         scheduler.step()
 
         ##TESTING##
