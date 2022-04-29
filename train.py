@@ -137,7 +137,7 @@ if __name__ == '__main__':
                 for j in range(TRAIN_BATCH_SIZE):
                     img = torch.squeeze(pred[j]).cpu().unsqueeze(2).expand(-1, -1, 3).numpy() * 255
                     img = Image.fromarray(img.astype(np.uint8))
-                    img.save(SAVE_PATH_VAL + "%s_pred.jpg" % (i * TRAIN_BATCH_SIZE + j))
+                    img.save(SAVE_PATH_VAL + "%s_pred.jpg" % (epoch * TRAIN_BATCH_SIZE + j))
 
                 loss += loss_function(output, truth).item()  # sum up batch loss
                 pred = output.max(1, keepdim=True)[1]
