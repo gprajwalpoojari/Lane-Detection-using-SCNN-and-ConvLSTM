@@ -107,7 +107,7 @@ if __name__ == '__main__':
             loss = loss_function(output, truth)
             pred = output.max(1, keepdim=True)[1]
             # print(pred.size())
-            pred = torch.tensor_split(pred, TRAIN_BATCH_SIZE, dim=0)
+            pred = torch.unbind(pred, dim=0)
             for j in range(TRAIN_BATCH_SIZE):
                 img = torch.squeeze(pred[j]).cpu().unsqueeze(2).expand(-1,-1,3).numpy()*255
                 img = Image.fromarray(img.astype(np.uint8))
@@ -133,7 +133,7 @@ if __name__ == '__main__':
                 truth = mini_batch['label'].type(torch.LongTensor).to(device)
                 output = model(images)
                 pred = output.max(1, keepdim=True)[1]
-                pred = torch.tensor_split(pred, TRAIN_BATCH_SIZE, dim=0)
+                pred = torch.unbind(pred, dim=0)
                 for j in range(TRAIN_BATCH_SIZE):
                     img = torch.squeeze(pred[j]).cpu().unsqueeze(2).expand(-1, -1, 3).numpy() * 255
                     img = Image.fromarray(img.astype(np.uint8))

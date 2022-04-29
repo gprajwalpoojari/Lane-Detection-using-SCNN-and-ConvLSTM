@@ -301,7 +301,7 @@ class STRNN(nn.Module):                             ##Segnet Based nn
 
     def forward(self, input):
         # input has dimensions = mini_batch, 5, channels, Height, Width
-        input_ = torch.tensor_split(input, 5, dim=1)
+        input_ = torch.unbind(input, dim=1)
         feat = []
         for i in range(5):
             img = torch.squeeze(input_[i], dim=1)  # dimensions = mini_batch, channels, height, width
